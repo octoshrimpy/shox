@@ -1,6 +1,7 @@
 package decorators
 
 import (
+	"os"
 	"fmt"
 	"regexp"
 	"strings"
@@ -60,7 +61,7 @@ func (b *StatusBar) SetFg(colour ansi.Colour) {
 
 // Draw renders the decorator to StdOut
 func (b *StatusBar) Draw(rows uint16, cols uint16, writeFunc func(data []byte)) {
-
+	
 	var row, col uint16
 	switch b.anchor {
 	case AnchorBottom:
@@ -73,10 +74,25 @@ func (b *StatusBar) Draw(rows uint16, cols uint16, writeFunc func(data []byte)) 
 	// clear line
 	writeFunc([]byte("\x1b[K"))
 
+	// @octoshrimpy - grab ENV colors first
+	env_bg := os.Getenv("SHOX_BG")
+	if env_bg != "" {
+		if bg, err := ansi.ColourFromString(env_bg); err == nil {
+			b.SetBg(bg)
+		}
+	}
+	
+	env_fg := os.Getenv("SHOX_FG")
+	if env_fg != "" {
+		if fg, err := ansi.ColourFromString(env_fg); err == nil {
+			b.SetFg(fg)
+		}
+	}
+
 	// set colours
 	writeFunc([]byte(fmt.Sprintf("\r\033[%dm\033[%dm", b.bg, b.fg)))
 
-	segments := strings.SplitN(b.format, "|", 3)
+	segments := strings.SplitN(b.format, "<>", 3)
 	colSize := int(cols) / len(segments)
 	midExtra := int(cols) - (colSize * len(segments))
 	for i, segment := range segments {

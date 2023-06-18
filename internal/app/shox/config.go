@@ -12,6 +12,7 @@ import (
 
 type config struct {
 	Shell string `yaml:"shell"`
+	Motd string `yaml:"motd"`
 	Bar   struct {
 		Format  string `yaml:"format"`
 		Colours struct {

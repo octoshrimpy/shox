@@ -30,6 +30,9 @@ func Run() error {
 	}
 
 	if config != nil {
+		if config.Motd != "" {
+			term.SetMOTD(config.Motd)
+		}
 		if config.Shell != "" {
 			term.SetShell(config.Shell)
 		}

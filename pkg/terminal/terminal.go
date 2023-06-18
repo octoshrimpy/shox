@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"strings"
 
 	"github.com/liamg/shox/pkg/decorators"
 
@@ -88,7 +89,24 @@ func (t *Terminal) Run(commands ...string) error {
 
 	t.proxy.Start()
 	defer t.proxy.Close()
-	t.proxy.Write([]byte(fmt.Sprintf("\x1bc%s", t.motd))) // reset term and write motd
+
+	// if motd is command, ie: start with $( and ends with )
+	motd := t.motd
+	if strings.HasPrefix(t.motd, "$(") && strings.HasSuffix(t.motd, ")") {
+		motd = strings.TrimPrefix(motd, "$(")
+		motd = strings.TrimSuffix(motd, ")")
+		output, err := exec.Command(t.shell, "-c", motd).Output()
+		if err != nil {
+			motd = err.Error()
+		} else {
+			motd = string(output)
+		}
+	} else {
+		motd += "\n"
+	}
+	t.motd = motd
+	
+	t.proxy.Write([]byte(fmt.Sprintf("\x1bc%s\r", t.motd))) // reset term and write motd
 
 	// Create arbitrary command.
 	c := exec.Command(t.shell)
