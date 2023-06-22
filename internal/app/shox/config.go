@@ -13,6 +13,7 @@ import (
 type config struct {
 	Shell string `yaml:"shell"`
 	Motd string `yaml:"motd"`
+	Nesting bool `yaml:"nesting"`
 	Bar   struct {
 		Format  string `yaml:"format"`
 		Colours struct {

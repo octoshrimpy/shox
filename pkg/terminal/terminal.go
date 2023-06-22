@@ -5,9 +5,9 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
-	"strings"
 
 	"github.com/liamg/shox/pkg/decorators"
 
@@ -80,22 +80,35 @@ func (t *Terminal) ForceRedraw() {
 // Run starts the terminal/shell proxying process
 func (t *Terminal) Run(commands ...string) error {
 
-	if !t.enableNesting {
-		if os.Getenv("SHOX") != "" {
+	msg := ""
+	if os.Getenv("SHOX") != "" {
+		msg += "inner shox"
+
+			for _, cmd := range commands {
+				if strings.HasPrefix(cmd, "shox ") {
+					msg += " found shox cmd"
+				}
+			}
+		if !t.enableNesting {
 			return fmt.Errorf("shox is already running in this terminal")
+		} else {
+			fmt.Print(msg)
 		}
 		_ = os.Setenv("SHOX", "1")
+
 	}
 
 	t.proxy.Start()
 	defer t.proxy.Close()
 
-	// if motd is command, ie: start with $( and ends with )
+	// if motd is command: starts with $( and ends with )
 	motd := t.motd
 	if strings.HasPrefix(t.motd, "$(") && strings.HasSuffix(t.motd, ")") {
 		motd = strings.TrimPrefix(motd, "$(")
 		motd = strings.TrimSuffix(motd, ")")
+
 		output, err := exec.Command(t.shell, "-c", motd).Output()
+
 		if err != nil {
 			motd = err.Error()
 		} else {
@@ -114,6 +127,7 @@ func (t *Terminal) Run(commands ...string) error {
 	if t.dir != "" {
 		c.Dir = t.dir
 	}
+
 
 	// Start the command with a pty.
 	var err error

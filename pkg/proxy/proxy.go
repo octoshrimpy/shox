@@ -28,6 +28,7 @@ type Proxy struct {
 	canRender             bool
 	redrawChan            chan struct{}
 	pauseDrawing          bool
+	inputBuffer						[]byte
 }
 
 // NewProxy creates a new proxy instance
@@ -45,7 +46,7 @@ func NewProxy() *Proxy {
 func (p *Proxy) Start() {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	if p.started == true {
+	if p.started {
 		return
 	}
 	go p.process()
@@ -76,10 +77,17 @@ func (p *Proxy) Write(data []byte) (n int, err error) {
 	if !p.started {
 		return 0, fmt.Errorf("proxy not started")
 	}
+
+	// save to buffer
+	p.inputBuffer = append(p.inputBuffer, data...)
+
+	
+
 	for _, d := range data {
 		p.workChan <- d
 	}
 	return len(data), nil
+
 }
 
 // Read reads data from the proxy, which has been filtered
@@ -166,6 +174,7 @@ func (p *Proxy) process() {
 		select {
 		case b := <-p.workChan:
 
+			// if escape char
 			if b == 0x1b {
 				output, original, redraw := p.proxyANSICommand(p.workChan)
 				if original != nil {

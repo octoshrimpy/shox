@@ -39,6 +39,9 @@ func Run() error {
 		if config.Bar.Format != "" {
 			bar.SetFormat(config.Bar.Format)
 		}
+		if config.Nesting {
+			term.SetNestingAllowed(config.Nesting)
+		}
 		if bg, err := ansi.ColourFromString(config.Bar.Colours.Bg); err == nil {
 			bar.SetBg(bg)
 		}
