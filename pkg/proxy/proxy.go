@@ -81,13 +81,23 @@ func (p *Proxy) Write(data []byte) (n int, err error) {
 	// save to buffer
 	p.inputBuffer = append(p.inputBuffer, data...)
 
-	
+	// if newline
+	if data[0] == '\n' {
+		p.CheckCommands(string(p.inputBuffer))
+	}
 
 	for _, d := range data {
 		p.workChan <- d
 	}
 	return len(data), nil
 
+}
+
+func (p *Proxy) CheckCommands(command string) {
+	_, err := p.Write([]byte(fmt.Sprintf("gotcha %s", command)))
+	if err != nil {
+		fmt.Println("Got an error. Good luck fixing it, NERD.")
+	}
 }
 
 // Read reads data from the proxy, which has been filtered

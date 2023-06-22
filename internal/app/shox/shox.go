@@ -12,7 +12,7 @@ import (
 )
 
 // Run starts the shox application
-func Run() error {
+func RunTerm() (termy Terminal, error Error) {
 
 	term := terminal.NewTerminal()
 	bar := decorators.NewStatusBar()
@@ -51,5 +51,5 @@ func Run() error {
 		bar.SetPadding(config.Bar.Padding)
 	}
 
-	return term.Run()
+	return term, term.Run()
 }

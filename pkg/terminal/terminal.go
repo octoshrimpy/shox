@@ -92,9 +92,9 @@ func (t *Terminal) Run(commands ...string) error {
 		if !t.enableNesting {
 			return fmt.Errorf("shox is already running in this terminal")
 		} else {
-			fmt.Print(msg)
+			_ = os.Setenv("SHOX", "1")
+			return fmt.Errorf(msg)
 		}
-		_ = os.Setenv("SHOX", "1")
 
 	}
 
